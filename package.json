@@ -1,6 +1,6 @@
 {
   "name": "zync-editor-monaco-plugin",
-  "version": "0.1.10",
+  "version": "0.1.12",
   "private": true,
   "description": "Monaco editor-provider plugin for Zync with theme-follow + host messaging.",
   "license": "MIT",

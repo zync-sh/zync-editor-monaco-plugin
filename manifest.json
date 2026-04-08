@@ -1,7 +1,7 @@
 {
   "id": "com.zync.editor.monaco",
   "name": "Monaco Editor",
-  "version": "0.1.10",
+  "version": "0.1.12",
   "description": "IDE-style editor provider for Zync files.",
   "author": "Zync Team",
   "type": "editor-provider",
@@ -9,7 +9,7 @@
     "entry": "editor.html",
     "displayName": "Monaco",
     "priority": 200,
-    "defaultFor": ["text/*"],
+    "defaultFor": [],
     "supports": [
       "search",
       "replace",
@@ -19,7 +19,8 @@
       "multi-selection",
       "completion",
       "hover",
-      "definition"
+      "definition",
+      "minimap"
     ]
   }
 }

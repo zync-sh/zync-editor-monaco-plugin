@@ -11,7 +11,7 @@ export default defineConfig({
       output: {
         format: 'iife',
         entryFileNames: 'editor.js',
-        assetFileNames: 'editor.[ext]',
+        assetFileNames: 'editor-[name]-[hash][extname]',
         inlineDynamicImports: true,
       },
     },

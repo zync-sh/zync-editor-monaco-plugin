@@ -63,6 +63,12 @@ if (!container) {
   throw new Error('Missing #editor-root container');
 }
 const bootLoading = document.getElementById('boot-loading');
+const setBootState = (busy: boolean, message?: string) => {
+  if (!bootLoading) return;
+  bootLoading.setAttribute('aria-busy', busy ? 'true' : 'false');
+  if (message) bootLoading.textContent = message;
+  if (!busy) bootLoading.style.display = 'none';
+};
 
 (window as Window & { MonacoEnvironment?: unknown }).MonacoEnvironment = {
   getWorker(_moduleId: string, label: string) {
@@ -78,7 +84,7 @@ const editor = monaco.editor.create(container, {
   value: '',
   language: 'plaintext',
   automaticLayout: true,
-  minimap: { enabled: false },
+  minimap: { enabled: true },
   fontSize: 13,
   lineNumbersMinChars: 3,
   tabSize: 2,
@@ -95,8 +101,7 @@ const editor = monaco.editor.create(container, {
   },
 });
 if (bootLoading) {
-  bootLoading.setAttribute('aria-busy', 'false');
-  bootLoading.style.display = 'none';
+  setBootState(false);
 }
 
 let currentDocId: string | undefined;
@@ -127,17 +132,34 @@ const resolveLanguage = (language?: string) => {
 
 const gotoWidget = document.createElement('div');
 gotoWidget.id = 'zync-goto-widget';
+gotoWidget.setAttribute('role', 'group');
+gotoWidget.hidden = true;
+
+const gotoLabel = document.createElement('span');
+gotoLabel.id = 'zync-goto-label';
+gotoLabel.className = 'zync-visually-hidden';
+gotoLabel.textContent = 'Go to line and column';
+
+const gotoHint = document.createElement('span');
+gotoHint.id = 'zync-goto-hint';
+gotoHint.className = 'zync-visually-hidden';
+gotoHint.textContent = 'Format: line:column';
 
 const gotoInput = document.createElement('input');
 gotoInput.id = 'zync-goto-input';
 gotoInput.type = 'text';
 gotoInput.placeholder = 'line:column';
+gotoInput.setAttribute('aria-labelledby', 'zync-goto-label');
+gotoInput.setAttribute('aria-describedby', 'zync-goto-hint');
 
 const gotoGo = document.createElement('button');
 gotoGo.id = 'zync-goto-go';
 gotoGo.type = 'button';
 gotoGo.textContent = 'Go';
+gotoGo.setAttribute('aria-label', 'Apply go to line');
 
+gotoWidget.appendChild(gotoLabel);
+gotoWidget.appendChild(gotoHint);
 gotoWidget.appendChild(gotoInput);
 gotoWidget.appendChild(gotoGo);
 container.appendChild(gotoWidget);
@@ -154,7 +176,7 @@ const submitGoto = () => {
   };
   editor.revealPositionInCenter(target);
   editor.setPosition(target);
-  gotoWidget.style.display = 'none';
+  gotoWidget.hidden = true;
   editor.focus();
 };
 
@@ -167,7 +189,7 @@ gotoInput.addEventListener('keydown', (event) => {
   }
   if (event.key === 'Escape') {
     event.preventDefault();
-    gotoWidget.style.display = 'none';
+    gotoWidget.hidden = true;
     editor.focus();
   }
 });
@@ -281,12 +303,22 @@ window.zyncEditor?.emitReady({
     'completion',
     'hover',
     'definition',
+    'minimap',
   ],
 });
 const runGotoLinePrompt = () => {
   const current = editor.getPosition();
   gotoInput.value = current ? `${current.lineNumber}:${current.column}` : '1:1';
-  gotoWidget.style.display = 'flex';
+  gotoWidget.hidden = false;
   gotoInput.focus();
   gotoInput.select();
 };
+
+window.addEventListener('error', () => {
+  if (bootLoading?.getAttribute('aria-busy') === 'true') {
+    setBootState(
+      false,
+      'Failed to initialize Monaco editor. Please reopen this file or reinstall the plugin.'
+    );
+  }
+});
